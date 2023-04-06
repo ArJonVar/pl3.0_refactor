@@ -49,9 +49,9 @@ async def root():
 
 @app.post("/pl-update")
 async def plupdate(payload: WebhookPayload):
-    log=ghetto_logger("main.py")
+    logr=ghetto_logger("main.py")
     # print(payload)
-    log.log(payload +"\n")
+    logr.log(payload)
     return {"message":"04/06/23"}
     webhook_id = payload.webhookId
 
