@@ -51,9 +51,10 @@ async def root():
 async def plupdate(payload: WebhookPayload):
     logr=ghetto_logger("main.py")
     # print(payload)
-    logr.log(payload)
-    return {"message":"04/06/23"}
+    # logr.log(payload)
     webhook_id = payload.webhookId
+    logr.log(webhook_id)
+    return {"message":"04/06/23"}
 
     # Extract the events into a list of dictionaries
     events = []
