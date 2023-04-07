@@ -59,7 +59,9 @@ def row_id_to_row_dict(row_id, scopeObjectId):
     try: 
         sheet = smart.Sheets.get_sheet(scopeObjectId)   
     except ApiError:
-        logr.log("failure to find scopeObjectId, this means api key cannot see the sheet webhook is looking at")
+        error = "APIERROR: failure to find scopeObjectId, this means api key cannot see the sheet webhook is looking at"
+        logr.log(error)
+        return(error)
     # logr.log("C")
     url = sheet.to_dict().get('permalink')
     # logr.log(f"D, {url}")
