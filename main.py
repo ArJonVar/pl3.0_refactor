@@ -5,8 +5,8 @@ import os
 from pydantic import BaseModel
 from typing import List
 from logger import ghetto_logger
-from smartsheet_grid import grid
 import smartsheet
+from smartsheet.exceptions import ApiError
 from globals import smartsheet_token
 
 app = FastAPI()
@@ -54,8 +54,12 @@ def row_id_to_row_dict(row_id, scopeObjectId):
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
     # logr.log("A")
     smart = smartsheet.Smartsheet(smartsheet_token)
+    smart.errors_as_exceptions(True)
     # logr.log("B")
-    sheet = smart.Sheets.get_sheet(scopeObjectId)   
+    try: 
+        sheet = smart.Sheets.get_sheet(scopeObjectId)   
+    except ApiError:
+        logr.log("failure to find scopeObjectId, this means api key cannot see the sheet webhook is looking at")
     # logr.log("C")
     url = sheet.to_dict().get('permalink')
     # logr.log(f"D, {url}")
