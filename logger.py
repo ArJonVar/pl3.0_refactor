@@ -32,6 +32,9 @@ class ghetto_logger:
         return timestamp
     
     def log(self, text, type = "new_line", mode="a"):
+        #so we can log what we want, and it will work without error
+        text = str(text)
+        
         function_name = inspect.currentframe().f_back.f_code.co_name
         
         try:
