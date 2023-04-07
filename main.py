@@ -90,18 +90,18 @@ async def plupdate(payload: WebhookPayload):
     row_meta_data = []
 
     if str(webhook_id) == '7589161210275716':
-        logr.log("1")
+        # logr.log("1")
         rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
         row_meta_data = [row_id_to_row_dict(row, scopeObjectId) for row in rows]
-        logr.log(str(row_meta_data))
+        logr.log(f"-- incomming data: {str(row_meta_data)}")
          
     else:
-        logr.log("2")
+        # logr.log("2")
         logr.log("webhookId does not match expectation")
 
     if len(rows) > 0:
-        logr.log("3")
-        logr.log(f"{str(rows)}, {str(webhook_id)}, 'pl3_main.py'")
+        # logr.log("3")
+        logr.log(f"-- fed into subprocess: {str(rows)}, {str(webhook_id)}, 'pl3_main.py'")
         # command = configure_argz(rows, webhook_id, 'pl3_main.py')
         # p = subprocess.Popen(command, cwd=sdir)
 
