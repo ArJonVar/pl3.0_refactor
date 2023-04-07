@@ -74,7 +74,7 @@ async def plupdate(payload: WebhookPayload):
 
         if len(rows) > 0:
             logr.log("3")
-            logr.log(str(rows), str(webhook_id), 'pl3_main.py')
+            logr.log(f"{str(rows)}, {str(webhook_id)}, 'pl3_main.py'")
             # command = configure_argz(rows, webhook_id, 'pl3_main.py')
             # p = subprocess.Popen(command, cwd=sdir)
     
