@@ -78,7 +78,9 @@ def row_id_to_row_dict(logr, row_id, sheet, event_type):
         for i, row in enumerate(sheet.to_dict().get('rows')):
             if row.get('id') == row_id:
                 index = i + 1
-        return {'row_index': index, "row_id":row_id, 'url': url, 'event_type': event_type}
+        data = {'row_index': index, "row_id":row_id, 'url': url, 'event_type': event_type}
+        logr.log(str(data))
+        return data   
     else:
         return sheet
 
