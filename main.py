@@ -93,7 +93,7 @@ async def plupdate(payload: WebhookPayload):
         logr.log("1")
         rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
         row_meta_data = [row_id_to_row_dict(row, scopeObjectId) for row in rows]
-        logr.log(row_meta_data)
+        logr.log(str(row_meta_data))
          
     else:
         logr.log("2")
