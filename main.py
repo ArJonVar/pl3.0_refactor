@@ -67,6 +67,9 @@ def ss_api_calls(scopeObjectId, logr=ghetto_logger('main.py', False)):
         error = "APIERROR: failure to find scopeObjectId, this means api key cannot see the sheet webhook is looking at"
         return(error)
 
+# trying to optimize by have this preloaded
+sheet_data = ss_api_calls(8025857521411972)
+
 @log_exceptions
 def row_id_to_row_dict(row_id, sheet, event_type, logr=ghetto_logger('main.py', False)):
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
@@ -81,8 +84,6 @@ def row_id_to_row_dict(row_id, sheet, event_type, logr=ghetto_logger('main.py', 
     else:
         return sheet
 
-
-
 @app.get("/")
 async def root():
     return {"message": "updated on 04.06.2023"}
@@ -94,6 +95,8 @@ async def plupdate(payload: WebhookPayload):
     logr=ghetto_logger("main.py")
     webhook_id = payload.webhookId
     scopeObjectId=payload.scopeObjectId
+    if scopeObjectId != 8025857521411972:
+        sheet_data = ss_api_calls(scopeObjectId)
     logr.log(str(payload))
 
     # Extract the events into a list of dictionaries
@@ -109,7 +112,6 @@ async def plupdate(payload: WebhookPayload):
             so the logging can easily help a human see which row of which sheet is triggering'''
         data = []
         rows= []
-        sheet_data = ss_api_calls(scopeObjectId)
         for event in events:
             event_type = event.get('eventType')
             row_id = event.get('rowId')
