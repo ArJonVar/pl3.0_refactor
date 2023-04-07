@@ -37,7 +37,7 @@ def log_exceptions(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            logr.log(e)
+            logr.log(F"ERROR in {func.__name__}: {e}")
             raise e
     return wrapper
 
