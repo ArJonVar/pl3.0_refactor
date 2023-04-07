@@ -6,21 +6,12 @@ from pydantic import BaseModel
 from typing import List
 from logger import ghetto_logger
 import smartsheet
-from smartsheet.exceptions import ApiError
+# from smartsheet.exceptions import ApiError
 from globals import smartsheet_token
 
 app = FastAPI()
 
 logr=ghetto_logger("main.py")
-
-@app.get("/")
-async def root():
-    return {"message": "updated on 04.06.2023"}
-
-if os.name == 'nt':
-	sdir = r'C:\Egnyte\Private\cobyvardy\Other_Projects\Python\ariel\PL3.0_DO_REFACTOR'
-else:
-	sdir = r'/home/ariel/pl3.0_refactor'
 
 class Event(BaseModel):
     '''defines shape of the events list in WebhookPayload'''
@@ -40,6 +31,22 @@ class WebhookPayload(BaseModel):
     scopeObjectId: int
     events: List[Event]
 
+def log_exceptions(func):
+    '''decorator to catch and log errors'''
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logr.log(e)
+            raise e
+    return wrapper
+
+if os.name == 'nt':
+	sdir = r'C:\Egnyte\Private\cobyvardy\Other_Projects\Python\ariel\PL3.0_DO_REFACTOR'
+else:
+	sdir = r'/home/ariel/pl3.0_refactor'
+
+@log_exceptions
 def configure_argz(rows_input, webhook_id_input, script):
     '''takes inputs and runs the python script that makes the changes as a subprocess'''
     command = ['python', script]
@@ -50,6 +57,7 @@ def configure_argz(rows_input, webhook_id_input, script):
     print('command', command)
     return command 
 
+@log_exceptions
 def row_id_to_row_dict(row_id, scopeObjectId):
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
     # logr.log("A")
@@ -74,10 +82,12 @@ def row_id_to_row_dict(row_id, scopeObjectId):
     return {'row_index': index, 'url': url}
 
 
+
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "updated on 04.06.2023"}
 
+@log_exceptions
 @app.post("/pl-update")
 async def plupdate(payload: WebhookPayload):
     webhook_id = payload.webhookId
@@ -116,11 +126,3 @@ async def plupdate(payload: WebhookPayload):
     return{"sucess": "True", "rows": row_meta_data, 'last_update':"04/07/23"}
     # return {"message":"04/06/23", "test": webhook_id}
 
-# DEBUGGING:
-# @app.get("/")
-# async def root():
-#     return {"message": "Hello World"}
-
-# @app.post("/pl-update")
-# async def plupdate():
-#     return {"message":"04/06/23"}
