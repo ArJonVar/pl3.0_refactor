@@ -73,6 +73,7 @@ sheet_data = ss_api_calls(8025857521411972)
 @log_exceptions
 def row_id_to_row_dict(row_id, sheet, event_type, logr=ghetto_logger('main.py', False)):
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
+    logr.log('were in')
     if type(sheet) == smartsheet.models.sheet.Sheet:
         url = sheet.to_dict().get('permalink')
         index = "failed to find row! must not match the scopeObjectID"
@@ -95,7 +96,7 @@ async def plupdate(payload: WebhookPayload):
     logr=ghetto_logger("main.py")
     webhook_id = payload.webhookId
     scopeObjectId=payload.scopeObjectId
-    if scopeObjectId != 8025857521411972:
+    if str(scopeObjectId) != str(8025857521411972):
         sheet_data = ss_api_calls(scopeObjectId)
     logr.log(str(payload))
 
@@ -106,6 +107,7 @@ async def plupdate(payload: WebhookPayload):
         events.append(event_dict)
     
     logr.log(str(events))
+    logr.log(str(type(sheet_data)))
 
     if str(webhook_id) == '7589161210275716':
         '''if the webhook_id is a match, pull ss data from sheet, and then use webhook payload and ss to extract meaningful data (url/row index)
