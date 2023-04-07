@@ -65,17 +65,20 @@ async def plupdate(payload: WebhookPayload):
         logr.log("we're in")
         if str(webhook_id) == 'NEW WEBHOOK NUMBER':
             # rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
+            logr.log("1")
             rows = ["bug?"]
         
         else:
-             rows = ["no rows"]
+            logr.log("2")
+            rows = ["no rows"]
 
         if len(rows) > 0:
+            logr.log("3")
             logr.log(str(rows), str(webhook_id), 'pl3_main.py')
             # command = configure_argz(rows, webhook_id, 'pl3_main.py')
             # p = subprocess.Popen(command, cwd=sdir)
     
-    return{"sucess": True}
+    return{"sucess": "True"}
     # return {"message":"04/06/23", "test": webhook_id}
 
 # DEBUGGING:
