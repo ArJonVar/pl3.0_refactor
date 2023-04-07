@@ -79,7 +79,8 @@ async def plupdate(payload: WebhookPayload):
     if str(webhook_id) == '7589161210275716':
         logr.log("1")
         rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
-        [logr.log(row_id_to_row_dict(row)) for row in rows]
+        logr.log(rows)
+        [logr.log(row_id_to_row_dict(row, scopeObjectId)) for row in rows]
          
     else:
         logr.log("webhook not viable")
