@@ -128,6 +128,6 @@ async def plupdate(payload: WebhookPayload):
         # command = configure_argz(rows, webhook_id, 'pl3_main.py')
         # p = subprocess.Popen(command, cwd=sdir)
 
-    return{"sucess": "True", "rows": row_meta_data, 'last_update':"04/07/23"}
+    return{"sucess": "True", "rows": data, 'last_update':"04/07/23"}
 
 
