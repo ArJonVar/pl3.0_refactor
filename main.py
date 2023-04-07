@@ -67,6 +67,7 @@ async def plupdate(payload: WebhookPayload):
     
     else:
         logr.log("webhook not viable")
+        rows = []
 
 
     if len(rows) > 0:
