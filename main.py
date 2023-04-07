@@ -5,6 +5,8 @@ import os
 from pydantic import BaseModel
 from typing import List
 from logger import ghetto_logger
+from smartsheet_grid import grid
+from globals import smartsheet_token
 
 app = FastAPI()
 
@@ -18,6 +20,7 @@ else:
 	sdir = r'/home/ariel/pl3.0_refactor'
 
 class Event(BaseModel):
+    '''defines shape of the events list in WebhookPayload'''
     objectType: str
     eventType: str
     rowId: int
@@ -26,6 +29,7 @@ class Event(BaseModel):
     timestamp: str
 
 class WebhookPayload(BaseModel):
+    '''defines the shape of the expected body'''
     nonce: str
     timestamp: str
     webhookId: int
@@ -43,6 +47,16 @@ def configure_argz(rows_input, webhook_id_input, script):
     print('command', command)
     return command 
 
+def row_id_to_row_dict(row_id, scopeObjectId):
+    '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
+    grid.token=smartsheet_token
+    sheet = grid(scopeObjectId)
+    sheet.fetch_content()
+    index = sheet.df.loc[sheet.df['id']== row_id].index[0] +1
+    url = sheet.grid_url
+    return {'index': index, 'url': url}
+
+
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
@@ -51,6 +65,7 @@ async def root():
 async def plupdate(payload: WebhookPayload):
     logr=ghetto_logger("main.py")
     webhook_id = payload.webhookId
+    scopeObjectId=payload.scopeObjectId
     logr.log(str(payload))
 
     # Extract the events into a list of dictionaries
@@ -64,7 +79,8 @@ async def plupdate(payload: WebhookPayload):
     if str(webhook_id) == '7589161210275716':
         logr.log("1")
         rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
-    
+        [logr.log(str(row_id_to_row_dict(row))) for row in rows]
+         
     else:
         logr.log("webhook not viable")
         rows = []
