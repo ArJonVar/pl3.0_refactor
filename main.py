@@ -64,7 +64,8 @@ async def plupdate(payload: WebhookPayload):
     for event in list(events):
         logr.log("we're in")
         if str(webhook_id) == 'NEW WEBHOOK NUMBER':
-            rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
+            # rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
+            rows = "bug?"
         
         else:
              rows = "no rows"
