@@ -74,7 +74,7 @@ async def plupdate(payload: WebhookPayload):
         # command = configure_argz(rows, webhook_id, 'pl3_main.py')
         # p = subprocess.Popen(command, cwd=sdir)
     
-    return{"sucess": "True"}
+    return{"sucess": "True", "rows": rows}
     # return {"message":"04/06/23", "test": webhook_id}
 
 # DEBUGGING:
