@@ -80,7 +80,7 @@ async def plupdate(payload: WebhookPayload):
         logr.log("1")
         rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
         logr.log(rows)
-        [logr.log(row_id_to_row_dict(row, scopeObjectId)) for row in rows]
+        [logr.log(row_id_to_row_dict(row.get('rowId'), scopeObjectId)) for row in rows]
          
     else:
         logr.log("webhook not viable")
