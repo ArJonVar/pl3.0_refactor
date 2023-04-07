@@ -83,6 +83,7 @@ class grid:
             smart.errors_as_exceptions(True)
             self.grid_content = (smart.Sheets.get_sheet(self.grid_id)).to_dict()
             self.grid_name = (self.grid_content).get("name")
+            self.grid_url = (self.grid_content).get("permalink")
             # this attributes pulls the column headers
             self.grid_columns = [i.get("title") for i in (self.grid_content).get("columns")]
             # note that the grid_rows is equivelant to the cell's 'Display Value'
