@@ -52,11 +52,16 @@ def configure_argz(rows_input, webhook_id_input, script):
 def row_id_to_row_dict(row_id, scopeObjectId):
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
     grid.token=smartsheet_token
+    logr.log('A')
     sheet = grid(scopeObjectId)
+    logr.log('B')
     sheet.fetch_content()
+    logr.log('C')
     try:
         index = sheet.df.loc[sheet.df['id']== row_id].index[0] +1
+        logr.log('D')
         url = sheet.grid_url
+        logr.log('E')
     except:
         logr.log(f"row_id {row_id}, and scope object id {scopeObjectId} were unable to find a row index & url. likely the Rowid is not on the sheet of the scopeObjectId")
     return {'index': index, 'url': url}
