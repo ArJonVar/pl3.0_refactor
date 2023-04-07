@@ -72,13 +72,13 @@ def row_id_to_row_dict(row_id, scopeObjectId):
     sheet = smart.Sheets.get_sheet(scopeObjectId)   
     logr.log("C")
     url = sheet.to_dict().get('permalink')
-    logr.log("D")
+    logr.log(f"D, {url}")
     index = "failed to find row! must not match the scopeObjectID"
     logr.log("E")
     for i, row in enumerate(sheet.to_dict().get('rows')):
         if row.get('id') == row_id:
             index = i + 1
-    logr.log("F")
+    logr.log(f"F, {index}")
     return {'index': index, 'url': url}
 
 
@@ -106,7 +106,7 @@ async def plupdate(payload: WebhookPayload):
         logr.log(f"{rows}")
         logr.log(f"{rows}, {scopeObjectId}")
         logr.log(f"{rows}, {scopeObjectId}, {rows[0]}")
-        logr.log(row_id_to_row_dict(4083206946744196, scopeObjectId))
+        logr.log(str(row_id_to_row_dict(4083206946744196, scopeObjectId)))
         [logr.log(f"BOTTOM! {row_id_to_row_dict(row, scopeObjectId)}") for row in rows]
          
     else:
