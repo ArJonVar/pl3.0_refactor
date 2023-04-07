@@ -52,34 +52,20 @@ def configure_argz(rows_input, webhook_id_input, script):
 
 def row_id_to_row_dict(row_id, scopeObjectId):
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
-    # grid.token=smartsheet_token
-    # logr.log('A')
-    # sheet = grid(scopeObjectId)
-    # logr.log('B')
-    # sheet.fetch_content()
-    # logr.log('C')
-    # try:
-    #     index = sheet.df.loc[sheet.df['id']== row_id].index[0] +1
-    #     logr.log('D')
-    #     url = sheet.grid_url
-    #     logr.log('E')
-    # except:
-    #     logr.log(f"row_id {row_id}, and scope object id {scopeObjectId} were unable to find a row index & url. likely the Rowid is not on the sheet of the scopeObjectId")
-    # return {'index': index, 'url': url}
-    logr.log("A")
+    # logr.log("A")
     smart = smartsheet.Smartsheet(smartsheet_token)
-    logr.log("B")
+    # logr.log("B")
     sheet = smart.Sheets.get_sheet(scopeObjectId)   
-    logr.log("C")
+    # logr.log("C")
     url = sheet.to_dict().get('permalink')
-    logr.log(f"D, {url}")
+    # logr.log(f"D, {url}")
     index = "failed to find row! must not match the scopeObjectID"
-    logr.log("E")
+    # logr.log("E")
     for i, row in enumerate(sheet.to_dict().get('rows')):
         if row.get('id') == row_id:
             index = i + 1
-    logr.log(f"F, {index}")
-    return {'index': index, 'url': url}
+    # logr.log(f"F, {index}")
+    return {'row_index': index, 'url': url}
 
 
 @app.get("/")
@@ -99,31 +85,29 @@ async def plupdate(payload: WebhookPayload):
         events.append(event_dict)
     
     logr.log(str(events))
-        
+    
+    rows = []
+    row_meta_data = []
+
     if str(webhook_id) == '7589161210275716':
         logr.log("1")
         rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
-        logr.log(f"{rows}")
-        logr.log(f"{rows}, {scopeObjectId}")
-        logr.log(f"{rows}, {scopeObjectId}, {rows[0]}")
-        logr.log(str(row_id_to_row_dict(4083206946744196, scopeObjectId)))
-        [logr.log(f"BOTTOM! {row_id_to_row_dict(row, scopeObjectId)}") for row in rows]
+        row_meta_data = [row_id_to_row_dict(row, scopeObjectId) for row in rows]
+        logr.log(row_meta_data)
          
     else:
-        logr.log("webhook not viable")
-        rows = []
-
+        logr.log("2")
+        logr.log("webhookId does not match expectation")
 
     if len(rows) > 0:
         logr.log("3")
         logr.log(f"{str(rows)}, {str(webhook_id)}, 'pl3_main.py'")
         # command = configure_argz(rows, webhook_id, 'pl3_main.py')
         # p = subprocess.Popen(command, cwd=sdir)
-    else:
-        rows = ["no event rows w/ eventType == 'created'"]
 
 
-    return{"sucess": "True", "rows": rows, 'last_update':"04/07/23"}
+
+    return{"sucess": "True", "rows": row_meta_data, 'last_update':"04/07/23"}
     # return {"message":"04/06/23", "test": webhook_id}
 
 # DEBUGGING:
