@@ -56,21 +56,23 @@ def configure_argz(rows_input, webhook_id_input, script):
     return command 
 
 @log_exceptions
-def ss_api_calls(scopeObjectId):
+def ss_api_calls(logr, scopeObjectId):
     '''does the ss api call once so that row_id_to_row_dict can use the data to extract meaningful meta data'''
     smart = smartsheet.Smartsheet(smartsheet_token)
     smart.errors_as_exceptions(True)
     try: 
         sheet = smart.Sheets.get_sheet(scopeObjectId) 
-        return sheet  
+        logr.log(type(sheet)) 
+        return sheet 
     except ApiError:
         error = "APIERROR: failure to find scopeObjectId, this means api key cannot see the sheet webhook is looking at"
         return(error)
 
 @log_exceptions
-def row_id_to_row_dict(row_id, sheet, event_type):
+def row_id_to_row_dict(logr, row_id, sheet, event_type):
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
     if type(sheet) == smartsheet.models.sheet.Sheet:
+        logr.log('we in')
         url = sheet.to_dict().get('permalink')
         index = "failed to find row! must not match the scopeObjectID"
         for i, row in enumerate(sheet.to_dict().get('rows')):
@@ -111,11 +113,11 @@ async def plupdate(payload: WebhookPayload):
             so the logging can easily help a human see which row of which sheet is triggering'''
         data = []
         rows= []
-        sheet_data = ss_api_calls(scopeObjectId)
+        sheet_data = ss_api_calls(logr, scopeObjectId)
         for event in events:
             event_type = event.get('eventType')
             row_id = event.get('rowId')
-            data.append(row_id_to_row_dict(row_id, sheet_data, event_type))
+            data.append(row_id_to_row_dict(logr, row_id, sheet_data, event_type))
             if event_type == 'created':
                 rows.append(row_id)
 
