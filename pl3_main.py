@@ -2,9 +2,10 @@ try:
     from pl3_funcs import pl3Updater
 except ImportError:
     from .pl3_funcs import pl3Updater
+from globals import smartsheet_token
 
 def update_pl3():
-    action = pl3Updater(token='3mC3U9cL5XNsaYiCYqNEnd0n0PQV5Jw1574dW')
+    action = pl3Updater(token=smartsheet_token)
     return action.update_per_row()
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from typing import List
 from logger import ghetto_logger
 import smartsheet
-# from smartsheet.exceptions import ApiError
+from smartsheet.exceptions import ApiError
 from globals import smartsheet_token
 
 app = FastAPI()
@@ -32,12 +32,12 @@ class WebhookPayload(BaseModel):
     events: List[Event]
 
 def log_exceptions(func):
-    '''decorator to catch and log errors'''
+    '''decorator to catch and log errors in main .txt (you can also go to venv/bin/gunicorn_erroroutput.txt for full error)'''
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            logr.log(F"ERROR in {func.__name__}: {e}")
+            logr.log(F"ERROR in {func.__name__}(): {e}")
             raise e
     return wrapper
 
@@ -60,25 +60,19 @@ def configure_argz(rows_input, webhook_id_input, script):
 @log_exceptions
 def row_id_to_row_dict(row_id, scopeObjectId):
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
-    # logr.log("A")
     smart = smartsheet.Smartsheet(smartsheet_token)
     smart.errors_as_exceptions(True)
-    # logr.log("B")
     try: 
         sheet = smart.Sheets.get_sheet(scopeObjectId)   
     except ApiError:
         error = "APIERROR: failure to find scopeObjectId, this means api key cannot see the sheet webhook is looking at"
         logr.log(error)
         return(error)
-    # logr.log("C")
     url = sheet.to_dict().get('permalink')
-    # logr.log(f"D, {url}")
     index = "failed to find row! must not match the scopeObjectID"
-    # logr.log("E")
     for i, row in enumerate(sheet.to_dict().get('rows')):
         if row.get('id') == row_id:
             index = i + 1
-    # logr.log(f"F, {index}")
     return {'row_index': index, 'url': url}
 
 
@@ -90,6 +84,7 @@ async def root():
 @log_exceptions
 @app.post("/pl-update")
 async def plupdate(payload: WebhookPayload):
+    '''we take in a webhook payload from a post request, and use it to trigger the python script that will make nessisary updates and logs'''
     webhook_id = payload.webhookId
     scopeObjectId=payload.scopeObjectId
     logr.log(str(payload))
@@ -106,23 +101,18 @@ async def plupdate(payload: WebhookPayload):
     row_meta_data = []
 
     if str(webhook_id) == '7589161210275716':
-        # logr.log("1")
         rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
         row_meta_data = [row_id_to_row_dict(row, scopeObjectId) for row in rows]
         logr.log(f"-- incomming data: {str(row_meta_data)}")
          
     else:
-        # logr.log("2")
         logr.log("webhookId does not match expectation")
 
     if len(rows) > 0:
-        # logr.log("3")
         logr.log(f"-- fed into subprocess: {str(rows)}, {str(webhook_id)}, 'pl3_main.py'")
-        # command = configure_argz(rows, webhook_id, 'pl3_main.py')
-        # p = subprocess.Popen(command, cwd=sdir)
-
-
+        command = configure_argz(rows, webhook_id, 'pl3_main.py')
+        p = subprocess.Popen(command, cwd=sdir)
 
     return{"sucess": "True", "rows": row_meta_data, 'last_update':"04/07/23"}
-    # return {"message":"04/06/23", "test": webhook_id}
+
 
