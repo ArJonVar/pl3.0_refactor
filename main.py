@@ -67,7 +67,6 @@ def ss_api_calls(scopeObjectId):
         return sheet  
     except ApiError:
         error = "APIERROR: failure to find scopeObjectId, this means api key cannot see the sheet webhook is looking at"
-        logr.log(error)
         return(error)
 
 @log_exceptions
@@ -93,6 +92,7 @@ async def root():
 @app.post("/pl-update")
 async def plupdate(payload: WebhookPayload):
     '''we take in a webhook payload from a post request, and use it to trigger the python script that will make nessisary updates and logs'''
+    logr=ghetto_logger("main.py")
     webhook_id = payload.webhookId
     scopeObjectId=payload.scopeObjectId
     logr.log(str(payload))
