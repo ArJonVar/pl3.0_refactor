@@ -11,8 +11,6 @@ from globals import smartsheet_token
 
 app = FastAPI()
 
-logr=ghetto_logger("main.py")
-
 class Event(BaseModel):
     '''defines shape of the events list in WebhookPayload'''
     objectType: str
