@@ -53,8 +53,9 @@ async def plupdate(payload: WebhookPayload):
     # print(payload)
     # logr.log(payload)
     webhook_id = payload.webhookId
-    logr.log(webhook_id)
-    return {"message":"04/06/23"}
+    print(webhook_id)
+    # logr.log(webhook_id)
+    return {"message":"04/06/23", "test": webhook_id}
 
     # Extract the events into a list of dictionaries
     events = []
