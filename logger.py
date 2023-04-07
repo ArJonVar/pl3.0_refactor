@@ -6,11 +6,11 @@ import time
 
 class ghetto_logger:
     '''to deploy in class, put self.log=ghetto_logger("<module name>.py"), then ctr f and replace print( w/ self.log.log('''
-    def __init__(self, title, row_num = "", print = True):
+    def __init__(self, title, first_use = True, row_num = "", print = True):
         raw_now = datetime.now()
         self.print= print
         self.now = raw_now.strftime("%m/%d/%Y %H:%M:%S")
-        self.first_use=True
+        self.first_use=first_use
         self.first_line_stamp  = f"{self.now}  {title}--"
         self.start_time = time.time()
         if os.name == 'nt':
