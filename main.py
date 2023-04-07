@@ -10,6 +10,8 @@ from globals import smartsheet_token
 
 app = FastAPI()
 
+logr=ghetto_logger("main.py")
+
 @app.get("/")
 async def root():
     return {"message": "updated on 04.06.2023"}
@@ -52,8 +54,11 @@ def row_id_to_row_dict(row_id, scopeObjectId):
     grid.token=smartsheet_token
     sheet = grid(scopeObjectId)
     sheet.fetch_content()
-    index = sheet.df.loc[sheet.df['id']== row_id].index[0] +1
-    url = sheet.grid_url
+    try:
+        index = sheet.df.loc[sheet.df['id']== row_id].index[0] +1
+        url = sheet.grid_url
+    except:
+        logr.log(f"row_id {row_id}, and scope object id {scopeObjectId} were unable to find a row index & url. likely the Rowid is not on the sheet of the scopeObjectId")
     return {'index': index, 'url': url}
 
 
@@ -63,7 +68,6 @@ async def root():
 
 @app.post("/pl-update")
 async def plupdate(payload: WebhookPayload):
-    logr=ghetto_logger("main.py")
     webhook_id = payload.webhookId
     scopeObjectId=payload.scopeObjectId
     logr.log(str(payload))
@@ -79,8 +83,9 @@ async def plupdate(payload: WebhookPayload):
     if str(webhook_id) == '7589161210275716':
         logr.log("1")
         rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
-        logr.log(rows)
-        [logr.log(row_id_to_row_dict(row.get('rowId'), scopeObjectId)) for row in rows]
+        logr.log(f"{rows}, {scopeObjectId}, {rows[0].get('rowId')}")
+        logr.log(row_id_to_row_dict(4083206946744196, scopeObjectId))
+        # [logr.log(row_id_to_row_dict(row.get('rowId'), scopeObjectId)) for row in rows]
          
     else:
         logr.log("webhook not viable")
