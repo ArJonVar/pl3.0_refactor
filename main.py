@@ -50,28 +50,28 @@ async def root():
 @app.post("/pl-update")
 async def plupdate(payload: WebhookPayload):
     logr=ghetto_logger("main.py")
-    # print(payload)
-    # logr.log(payload)
     webhook_id = payload.webhookId
-    print(webhook_id)
-    logr.log(str(webhook_id))
-    return {"message":"04/06/23", "test": webhook_id}
+    logr.log(str(payload))
 
     # Extract the events into a list of dictionaries
     events = []
     for event in payload.events:
         event_dict = event.dict()
         events.append(event_dict)
-	
+    
+    logr.log(str(events))
+        
     for event in events:
         if webhook_id == 'NEW WEBHOOK NUMBER':
             rows = [event.get('rowId') for event in events if event.get('eventType') == 'created' ]
         
         if len(rows) > 0:
-            command = configure_argz(rows, webhook_id, 'pl3_main.py')
-            p = subprocess.Popen(command, cwd=sdir)
+            logr.log(str(rows), str(webhook_id), 'pl3_main.py')
+            # command = configure_argz(rows, webhook_id, 'pl3_main.py')
+            # p = subprocess.Popen(command, cwd=sdir)
     
     return{"sucess": True}
+    # return {"message":"04/06/23", "test": webhook_id}
 
 # DEBUGGING:
 # @app.get("/")
