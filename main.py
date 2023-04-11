@@ -55,19 +55,6 @@ def configure_argz(rows_input, webhook_id_input, script):
     print('command', command)
     return command 
 
-@log_exceptions
-def row_id_to_row_dict(row_id, event_type, logr=ghetto_logger('main.py', False)):
-    '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
-    logr.log('were in')
-    sheet = json.load(open('smartsheet_pull.json'))
-    url = sheet.get('permalink')
-    index = "failed to find row! must not match the scopeObjectID"
-    for i, row in enumerate(sheet.get('rows')):
-        if row.get('id') == row_id:
-            index = i + 1
-    data = {'row_index': index, "row_id":row_id, 'url': url, 'event_type': event_type}
-    return data   
-
 @app.get("/")
 async def root():
     return {"message": "updated on 04.06.2023"}
@@ -93,16 +80,10 @@ async def plupdate(payload: WebhookPayload):
     if str(webhook_id) == '8974468551862148':
         '''if the webhook_id is a match, pull ss data from sheet, and then use webhook payload and ss to extract meaningful data (url/row index)
             so the logging can easily help a human see which row of which sheet is triggering'''
-        data = []
         rows= []
         for event in events:
-            event_type = event.get('eventType')
-            row_id = event.get('rowId')
-            data.append(row_id_to_row_dict(row_id, event_type))
-            if event_type == 'created':
-                rows.append(row_id)
-
-        logr.log(f"-- incomming data: {str(data)}")
+            if event.get('eventType') == 'created':
+                rows.append(event.get('rowId'))
 
     else:
         logr.log("webhookId does not match expectation")
@@ -113,6 +94,6 @@ async def plupdate(payload: WebhookPayload):
         # command = configure_argz(rows, webhook_id, 'pl3_main.py')
         # p = subprocess.Popen(command, cwd=sdir)
 
-    return{"sucess": "True", "rows": data, 'last_update':"04/07/23"}
+    return{"sucess": "True", "rows": rows, 'last_update':"04/07/23"}
 
 
