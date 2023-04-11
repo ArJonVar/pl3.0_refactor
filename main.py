@@ -29,7 +29,7 @@ class WebhookPayload(BaseModel):
     scopeObjectId: int
     events: List[Event]
 
-def log_exceptions(func):
+def log_exceptions(func, logr=ghetto_logger('main.py', False)):
     '''decorator to catch and log errors in main .txt (you can also go to venv/bin/gunicorn_erroroutput.txt for full error)'''
     def wrapper(*args, **kwargs):
         try:
