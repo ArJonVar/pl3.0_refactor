@@ -66,16 +66,13 @@ async def plupdate(payload: WebhookPayload):
     logr=ghetto_logger("main.py")
     webhook_id = payload.webhookId
     scopeObjectId=payload.scopeObjectId
-    logr.log(str(payload))
+    logr.log(f"PAYLOAD: {str(payload)}")
 
     # Extract the events into a list of dictionaries
     events = []
     for event in payload.events:
         event_dict = event.dict()
         events.append(event_dict)
-    
-    logr.log(str(events))
-
 
     if str(webhook_id) == '8974468551862148':
         '''if the webhook_id is a match, pull ss data from sheet, and then use webhook payload and ss to extract meaningful data (url/row index)
