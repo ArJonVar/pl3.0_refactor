@@ -60,7 +60,7 @@ def row_id_to_row_dict(row_id, event_type, logr=ghetto_logger('main.py', False))
     '''pulls data on webhook row id (url, row index) to make it clear what is happening before script runs'''
     logr.log('were in')
     sheet = json.load(open('smartsheet_pull.json'))
-    url = sheet.to_dict().get('permalink')
+    url = sheet.get('permalink')
     index = "failed to find row! must not match the scopeObjectID"
     for i, row in enumerate(sheet.get('rows')):
         if row.get('id') == row_id:
