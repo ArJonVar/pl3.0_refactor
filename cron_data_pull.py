@@ -24,7 +24,7 @@ def ss_api_calls(scopeObjectId, logr=ghetto_logger('cron_data_pull.py', False)):
     smart.errors_as_exceptions(True)
     try: 
         sheet = smart.Sheets.get_sheet(scopeObjectId) 
-        return sheet.to_json() 
+        return sheet.to_dict()
     except ApiError:
         error = "APIERROR: failure to find scopeObjectId, this means api key cannot see the sheet webhook is looking at"
         return(error)
@@ -32,13 +32,13 @@ def ss_api_calls(scopeObjectId, logr=ghetto_logger('cron_data_pull.py', False)):
 @log_exceptions
 def overwrite_json(data, file_path):
         with open(file_path, 'w') as f:
-            json.dump(data, f)
+            json.dump(data, f, indent=4)
 
 if __name__ == "__main__":
     if os.name == 'nt':
         path = r'C:\Egnyte\Private\cobyvardy\Other_Projects\Python\ariel\PL3.0_DO_REFACTOR\smartsheet_pull.json'
     else:
-        path = r'/smartsheet_pull.json'
+        path = r'/home/ariel/pl3.0_refactor/smartsheet_pull.json'
 
     sheet = ss_api_calls(8025857521411972)
     overwrite_json(sheet, path)
