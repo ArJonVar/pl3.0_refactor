@@ -88,8 +88,8 @@ async def plupdate(payload: WebhookPayload):
     if len(rows) > 0:
         # if row_ids are here, feed them into subprocess that triggers the funcs.py and does the needed actions
         logr.log(f"-- fed into subprocess: {str(rows)}, {str(webhook_id)}, 'pl3_main.py'")
-        # command = configure_argz(rows, webhook_id, 'pl3_main.py')
-        # p = subprocess.Popen(command, cwd=sdir)
+        command = configure_argz(rows, webhook_id, 'pl3_main.py')
+        p = subprocess.Popen(command, cwd=sdir)
 
     return{"sucess": "True", "rows": rows, 'last_update':"04/07/23"}
 
