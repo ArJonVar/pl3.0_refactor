@@ -15,16 +15,6 @@ except ImportError:
 
 import sys
 
-def log_exceptions(func, logr=ghetto_logger('pl3_funcs.py', False)):
-    '''decorator to catch and log errors in main .txt (you can also go to venv/bin/gunicorn_erroroutput.txt for full error)'''
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            logr.log(F"ERROR in {func.__name__}(): {e}")
-            raise e
-    return wrapper
-
 class pl3Updater:
     '''designed usage:
     [variable] = pl3Updater(token='{insert token}')
@@ -44,6 +34,7 @@ class pl3Updater:
     #region raw inputs to processed inputs#
     def __init__(self, token, dev_bool = False, webhook_id='', row_ids=[]):
         raw_now = datetime.now()
+        self.row_num= "unkown row number"
         self.now = raw_now.strftime("%d/%m/%Y %H:%M:%S")
         self.dev_bool= dev_bool
         self.token = token
@@ -59,7 +50,21 @@ class pl3Updater:
         self.source_sheet_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="sheet_id")
         self.source_enum_column_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="enum_source_column_id")
         self.update_column_name = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="update_column_name")
+    
+    def log_exceptions(self, func, logr=ghetto_logger('pl3_funcs.py', False)):
+        '''decorator to catch and log errors in main .txt (you can also go to venv/bin/gunicorn_erroroutput.txt for full error)'''
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                logr.log(F"ERROR from {self.row_num} in {func.__name__}(): {e}")
+                if self.row_num != "unknown row number":
+                    local_log = ghetto_logger('pl3_funcs.py', False, self.row_num)
+                    local_log.log(F"ERROR in {func.__name__}(): {e}")
+                raise e
+        return wrapper
 
+    @log_exceptions
     def input_metadata(self, row_id):
         '''finds a row number and other meta data from inputs to give to log'''
         try:
@@ -73,7 +78,7 @@ class pl3Updater:
             if row.get('id') == row_id:
                 index = i + 1
         self.metadata = {'row_index': index, "row_id":row_id, 'url': url}
-
+    @log_exceptions
     def grab_variables_from_sysv(self):
         if self.dev_bool == True:
             arguments = ['pl3_funcs_dev.py', 'webhook_id:7782278911813508', 'row_id:1767981130114948']
@@ -81,7 +86,7 @@ class pl3Updater:
             arguments = [i for i in sys.argv]
         self.row_ids = [str(i.split("row_id:")[1]) for i in arguments if i.startswith("row_id:")]
         self.webhook_id = [str(i.split("webhook_id:")[1]) for i in arguments if i.startswith("webhook_id:")][0]
-
+    @log_exceptions
     @staticmethod
     def json_id_router(path, input_type=None, input=None, output_type=None):
         df = pd.read_json(path)
@@ -89,7 +94,8 @@ class pl3Updater:
             return df.loc[df[input_type] == int(input)][output_type].values.tolist()[0]
         except:
             return df.loc[df[input_type] == input][output_type].values.tolist()[0]
-
+    
+    @log_exceptions
     def json_router_handler(self, path, input_type=None, input=None, output_type=None):
         try:
             retrieved_item = self.json_id_router(path, input_type, input, output_type)
@@ -98,6 +104,7 @@ class pl3Updater:
             return f"{input_type}: {input} did not yield a matching {output_type} item in {path}.json, check arguments of json_retriever_wrapper()"
     #endregion
     #region generate update row values (enum/region)
+    @log_exceptions
     def generate_master_df(self, sheet_id, delete_empty_enums_rows=True):
         try: 
             master_grid = grid(sheet_id)
@@ -106,7 +113,7 @@ class pl3Updater:
             return master_grid.df
         except: 
             return f"failed at generate_master_df w/ sheet_id: {sheet_id}"
-
+    @log_exceptions
     def retrieve_cell_value(self, sheet_id, column_name, row_id):
         try:
             source_df = self.generate_master_df(sheet_id)
@@ -116,11 +123,12 @@ class pl3Updater:
             return f"could not retrieve value from source sheet, verify that column name {column_name} & row_id {row_id} exists"
     #endregion
     #region manage source data
+    @log_exceptions
     def manage_source_data(self):
         self.reduce_columns()
         self.generate_reduced_df()
         self.establish_update_dfs()
-
+    @log_exceptions
     def reduce_columns(self):
         self.reduced_columns = grid(self.source_sheet_id)
         self.reduced_columns.reduce_columns('@|=:_')
@@ -130,12 +138,11 @@ class pl3Updater:
         if self.webhook_id != '7782278911813508':
             self.column_ids_reduced_final = list(self.reduced_columns.column_df[self.reduced_columns.column_df['title']==self.update_column_name]['id'])
             self.column_names_final = [self.update_column_name]
-
+    @log_exceptions
     def generate_reduced_df(self):
         reduced_sheet = self.smart.Sheets.get_sheet(self.source_sheet_id, row_ids=self.current_row_id, column_ids = self.column_ids_reduced_final, level='2', include='objectValue').to_dict()
         self.reduced_rows = [i.get('cells') for i in reduced_sheet.get('rows')]
-
-
+    @log_exceptions
     def filter_value_by_type(self, json_key):
         data_by_key=[]
         for row_i in self.reduced_rows:
@@ -144,17 +151,18 @@ class pl3Updater:
                 row_list.append(cell.get(json_key))
             data_by_key.append(row_list)
         return data_by_key
-
+    @log_exceptions
     def establish_update_dfs(self):
         self.updaterow_byval_df = pd.DataFrame(self.filter_value_by_type('value'), columns= self.column_names_final)
         self.updaterow_bydisp_df = pd.DataFrame(self.filter_value_by_type('displayValue'), columns= self.column_names_final)
         self.updaterow_byobj_df = pd.DataFrame(self.filter_value_by_type('objectValue'), columns= self.column_names_final)
     #endregion
     #region manage destination data
+    @log_exceptions
     def manage_destination_data(self, dest_sheet_id):
         self.generate_regional_df(dest_sheet_id)
         self.find_row_id_by_value(dest_sheet_id)
-
+    @log_exceptions
     def delete_empty_cells(self, grid, reference_column_name, sheet_id, delete = False):
         empty_value_list = grid.df.index[grid.df[reference_column_name].isnull()].tolist()
         empty_row_ids = [grid.grid_row_ids[i] for i in empty_value_list ]
@@ -165,7 +173,7 @@ class pl3Updater:
                 empty_row_ids)     # row_ids
             except:
                 pass  
-
+    @log_exceptions
     def generate_regional_df(self, dest_sheet_id):
         destination_grid = grid(dest_sheet_id)
         destination_grid.fetch_content()
@@ -176,7 +184,7 @@ class pl3Updater:
             self.reduced_dest_col_df = destination_column_df[destination_column_df['formula'].notnull()==False]
         except KeyError:
             self.reduced_dest_col_df = destination_column_df
-
+    @log_exceptions
     def find_row_id_by_value(self, sheet_id):
         try: 
             enum=str(self.enum)
@@ -187,6 +195,7 @@ class pl3Updater:
             self.logr.log("destination_row_id could not be found, so no update will be made")
     #endregion
     #region process column matching source // dest
+    @log_exceptions
     def process_matching(self):
         self.matching_columns()
         self.establish_matched_update_dfs()
@@ -195,15 +204,15 @@ class pl3Updater:
         self.matched_regional_column_df =self.reduced_dest_col_df[self.reduced_dest_col_df['title'].isin(self.matched_columns)]
         self.sort_into_main_df()
         self.processing_blanks()
-
+    @log_exceptions
     def matching_columns(self):
         self.matched_columns = [i for i in self.reduced_dest_col_df.title.values.tolist() if i in self.updaterow_byval_df.columns]
-
+    @log_exceptions
     def establish_matched_update_dfs(self):
         self.updaterow_byobj_df = self.updaterow_byobj_df[self.matched_columns]   
         self.updaterow_byval_df = self.updaterow_byval_df[self.matched_columns]
         self.updaterow_bydisp_df = self.updaterow_bydisp_df[self.matched_columns]
-    
+    @log_exceptions
     def sort_into_main_df(self):
         #DEBUGGING BY COLUMN TYPE: self.logr.log(self.matched_regional_column_df.type)
         for columntype,columnname in zip(self.matched_regional_column_df.type, self.matched_regional_column_df.title):
@@ -211,12 +220,13 @@ class pl3Updater:
                 self.main_updaterow_df[columnname] = self.updaterow_byobj_df[columnname]
             if columntype in ('DATE', 'CHECKBOX'):
                 self.main_updaterow_df[columnname] = self.updaterow_byval_df[columnname]
-
+    @log_exceptions
     def processing_blanks(self):
         self.main_updaterow_df = self.main_updaterow_df.replace(r'^\s*$', np.nan, regex=True)
         self.main_updaterow_df = self.main_updaterow_df.fillna('')
     #endregion
     #region updete_per_cell
+    @log_exceptions
     def update_per_cell(self):
         self.logr.log("starting update per cell...")
         update_values = self.main_updaterow_df.values.tolist()
@@ -348,7 +358,8 @@ class pl3Updater:
         for row_id in self.row_ids:
             row_id = int(row_id)
             self.input_metadata(row_id)
-            self.logr = ghetto_logger("pl3_funcs.py", row_num = self.metadata.get('row_index'))
+            self.row_num = self.metadata.get('row_index')
+            self.logr = ghetto_logger("pl3_funcs.py", row_num = self.row_num)
             self.logr.log(self.metadata)
             self.current_row_id = row_id
             self.enum = self.retrieve_cell_value(self.source_sheet_id, "ENUMERATOR", row_id)
