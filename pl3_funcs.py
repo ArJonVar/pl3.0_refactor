@@ -65,7 +65,7 @@ class pl3Updater:
                 raise e
         return wrapper
 
-    @log_exceptions
+    # @log_exceptions
     def input_metadata(self, row_id):
         '''finds a row number and other meta data from inputs to give to log'''
         try:
