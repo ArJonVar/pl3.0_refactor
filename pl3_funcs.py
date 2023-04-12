@@ -58,9 +58,9 @@ class pl3Updater:
                 return func(*args, **kwargs)
             except Exception as e:
                 logr.log(F"ERROR from {self.row_num} in {func.__name__}(): {e}")
-                if self.row_num != "unknown row number":
-                    local_log = ghetto_logger('pl3_funcs.py', False, self.row_num)
-                    local_log.log(F"ERROR in {func.__name__}(): {e}")
+                # if self.row_num != "unknown row number":
+                #     local_log = ghetto_logger('pl3_funcs.py', False, self.row_num)
+                #     local_log.log(F"ERROR in {func.__name__}(): {e}")
                 raise e
         return wrapper
 
