@@ -14,7 +14,11 @@ class ghetto_logger:
         self.first_line_stamp  = f"{self.now}  {title}--"
         self.start_time = time.time()
         if os.name == 'nt':
-            self.path =F'C:\Egnyte\Private\cobyvardy\Other_Projects\Python\Ariel\pl3.0_DO_Refactor\dev_logger'
+            if row_num == "":
+                self.path =r'C:\Egnyte\Private\cobyvardy\Other_Projects\Python\Ariel\pl3.0_DO_Refactor\dev_logger.txt'
+            else:
+                base_path ='C:\Egnyte\Private\cobyvardy\Other_Projects\Python\Ariel\pl3.0_DO_Refactor\\row_log\\'
+                self.path = f"{base_path}row_{row_num}.txt"
         else:
             if row_num == "":
                 self.path ="master_log.txt"

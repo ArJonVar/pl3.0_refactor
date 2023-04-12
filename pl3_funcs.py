@@ -34,7 +34,7 @@ class pl3Updater:
     #region raw inputs to processed inputs#
     def __init__(self, token, dev_bool = False, webhook_id='', row_ids=[]):
         raw_now = datetime.now()
-        self.now = raw_now.strftime("%m/%d/%Y %H:%M:%S")
+        self.now = raw_now.strftime("%d/%m/%Y %H:%M:%S")
         self.dev_bool= dev_bool
         self.token = token
         self.dest_row_id = None
@@ -49,8 +49,21 @@ class pl3Updater:
         self.source_sheet_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="sheet_id")
         self.source_enum_column_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="enum_source_column_id")
         self.update_column_name = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="update_column_name")
-        row_num = "test_row_num"
-        self.log=ghetto_logger("pl3_funcs.py", row_num)
+
+    def input_metadata(self, row_id):
+        '''finds a row number and other meta data from inputs to give to log'''
+        try:
+            sheet = smart.Sheets.get_sheet(self.source_sheet_id)
+        except:
+            logr = ghetto_logger("pl3_funcs.py", False)
+            logr.log(f"failed to find source sheet with id {self.source_sheet_id}, could not proceed with update")
+        url = sheet.to_dict().get('permalink')
+        index = "failed to find row! must not match the scopeObjectID"
+        for i, row in enumerate(sheet.to_dict().get('rows')):
+            if row.get('id') == row_id:
+                index = i + 1
+        self.metadata = {'row_index': index, "row_id":row_id, 'url': url}
+
     def grab_variables_from_sysv(self):
         if self.dev_bool == True:
             arguments = ['pl3_funcs_dev.py', 'webhook_id:7782278911813508', 'row_id:1767981130114948']
@@ -161,7 +174,7 @@ class pl3Updater:
             row_id = destination_sheet.loc[(destination_sheet.ENUMERATOR == enum)]['row_id']
             self.dest_row_id = (list(row_id.values)[0])
         except: 
-            self.log.log("destination_row_id could not be found, so no update will be made")
+            self.logr.log("destination_row_id could not be found, so no update will be made")
     #endregion
     #region process column matching source // dest
     def process_matching(self):
@@ -182,7 +195,7 @@ class pl3Updater:
         self.updaterow_bydisp_df = self.updaterow_bydisp_df[self.matched_columns]
     
     def sort_into_main_df(self):
-        #DEBUGGING BY COLUMN TYPE: self.log.log(self.matched_regional_column_df.type)
+        #DEBUGGING BY COLUMN TYPE: self.logr.log(self.matched_regional_column_df.type)
         for columntype,columnname in zip(self.matched_regional_column_df.type, self.matched_regional_column_df.title):
             if columntype in ('MULTI_CONTACT_LIST', 'MULTI_PICKLIST', 'CONTACT_LIST'):
                 self.main_updaterow_df[columnname] = self.updaterow_byobj_df[columnname]
@@ -195,13 +208,13 @@ class pl3Updater:
     #endregion
     #region updete_per_cell
     def update_per_cell(self):
-        self.log.log("starting update per cell...")
+        self.logr.log("starting update per cell...")
         update_values = self.main_updaterow_df.values.tolist()
         for row, rownum in zip(update_values, range(len(update_values))):
             new_row = self.smart.models.Row()
             new_row.id = int(self.dest_row_id)
             for item, column, colname in zip(row, self.matched_regional_column_df.id, self.matched_regional_column_df.title):
-                self.log.log(f'''
+                self.logr.log(f'''
                     COL:  {colname} COLID:{column}
                     Value: {item}
                 ''')
@@ -248,16 +261,16 @@ class pl3Updater:
                         #append cell to new_row
                         new_row.cells.append(new_cell)
                     else: 
-                        self.log.log("skipped")
+                        self.logr.log("skipped")
         try:
-            # self.log.log('NEW ROW:', new_row)
+            # self.logr.log('NEW ROW:', new_row)
             response = self.smart.Sheets.update_rows(self.dest_sheet_id, [new_row])
-            # self.log.log(response)
-            self.log.log(f"Complete Row Update, {response.message} at {self.now} + 5 hrs - 12 hrs")
+            # self.logr.log(response)
+            self.logr.log(f"Complete Row Update, {response.message} at {self.now} + 5 hrs - 12 hrs")
         except:
             # region !!NEW DEBUGGING TOOL!! (go through posts one at a time, USE f(X)!!)
             for item, column, colname in zip(row, self.matched_regional_column_df.id, self.matched_regional_column_df.title):
-                self.log.log(f'''
+                self.logr.log(f'''
                     COL:  {colname} COLID:{column}
                     Value: {item}
                 ''')
@@ -310,31 +323,34 @@ class pl3Updater:
                         new_row.cells.append(new_cell)
                         response = self.smart.Sheets.update_rows(self.dest_sheet_id, [new_row])
                     else: 
-                        self.log.log("skipped")
+                        self.logr.log("skipped")
 # endregion
-            self.log.log(f"Error required partial post at {self.now}  + 5 hrs - 12 hrs")
+            self.logr.log(f"Error required partial print at {self.now}  + 5 hrs - 12 hrs")
             new_cell.allowPartialSuccess="true"
             response = self.smart.Sheets.update_rows(self.dest_sheet_id, [new_row])
-            self.log.log(response)
-            self.log.log(f"Partial Success Row updated {response.message}")
+            self.logr.log(response)
+            self.logr.log(f"Partial Success Row updated {response.message}")
         return response
     #endregion
 
     def update_per_row(self):
         for row_id in self.row_ids:
             row_id = int(row_id)
-            # is it bad to make a for loop variable .self, it will keep getting overwritten between each loop...
-            self.current_row_id = row_id
-            self.enum = self.retrieve_cell_value(self.source_sheet_id, "ENUMERATOR", row_id)
-            self.log.log(f"Locating and managing pertinent data for the {self.enum} update")
-            self.manage_source_data()
-            self.region = self.retrieve_cell_value(self.source_sheet_id,"REGION", row_id)
-            self.dest_sheet_id = self.json_router_handler(path="pl3_regional_ids.json", input_type="region", input=self.region, output_type="sheetid")
-            self.manage_destination_data(self.dest_sheet_id)
-            self.log.log("self.manage_distination_data...")
-            self.process_matching()
-            self.log.log("self.process_matching...")
-            self.update_per_cell()
-            self.log.log(f"{self.enum} Updated on the {self.region} Project List")
-            time.sleep(12)
-
+            self.input_metadata(row_id)
+            self.logr = ghetto_logger("pl3_funcs.py", row_num = self.metadata.get('row_index'))
+            self.logr.log(self.metadata)
+            # self.current_row_id = row_id
+            # self.enum = self.retrieve_cell_value(self.source_sheet_id, "ENUMERATOR", row_id)
+            # self.logr.log(f"Locating and managing pertinent data for the {self.enum} update")
+            # self.manage_source_data()
+            # self.region = self.retrieve_cell_value(self.source_sheet_id,"REGION", row_id)
+            # self.dest_sheet_id = self.json_router_handler(path="pl3_regional_ids.json", input_type="region", input=self.region, output_type="sheetid")
+            # self.manage_destination_data(self.dest_sheet_id)
+            # self.logr.log("self.manage_distination_data...")
+            # self.process_matching()
+            # self.logr.log("self.process_matching...")
+            # self.update_per_cell()
+            # self.logr.log("debug!! Updates:", self.main_updaterow_df.values.tolist())
+            # self.logr.log(f"{self.enum} Updated on the {self.region} Project List")
+            # time.sleep(12)
+    
