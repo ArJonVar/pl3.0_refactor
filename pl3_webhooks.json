@@ -33,5 +33,12 @@
         "sheet_id": "2052215947978628",
         "enum_source_column_id": "2524742674605956",
         "update_column_name":"STATUS" 
+    },
+    {
+        "name": "UPDATE V2.0 | PL 3.0 UPDATE",
+        "webhook_id": "8974468551862148",
+        "sheet_id": "8025857521411972",
+        "enum_source_column_id": "7584372362635140",
+        "update_column_name":"ALL V2.0" 
     }
 ]
