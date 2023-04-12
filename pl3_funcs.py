@@ -15,6 +15,16 @@ except ImportError:
 
 import sys
 
+def log_exceptions(func, logr=ghetto_logger('pl3_funcs.py', False)):
+    '''decorator to catch and log errors in main .txt (you can also go to venv/bin/gunicorn_erroroutput.txt for full error)'''
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logr.log(F"ERROR in {func.__name__}(): {e}")
+            raise e
+    return wrapper
+
 class pl3Updater:
     '''designed usage:
     [variable] = pl3Updater(token='{insert token}')
@@ -332,7 +342,8 @@ class pl3Updater:
             self.logr.log(f"Partial Success Row updated {response.message}")
         return response
     #endregion
-
+    
+    @log_exceptions
     def update_per_row(self):
         for row_id in self.row_ids:
             row_id = int(row_id)
