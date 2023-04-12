@@ -33,6 +33,7 @@ class pl3Updater:
 
     #region raw inputs to processed inputs#
     def __init__(self, token, dev_bool = False, webhook_id='', row_ids=[]):
+        self.mainlogr=ghetto_logger('pl3_funcs.py', False)
         raw_now = datetime.now()
         self.row_num= "unkown row number"
         self.now = raw_now.strftime("%d/%m/%Y %H:%M:%S")
@@ -356,9 +357,13 @@ class pl3Updater:
     @log_exceptions
     def update_per_row(self):
         for row_id in self.row_ids:
+            self.mainlogr.log("1")
             row_id = int(row_id)
+            self.mainlogr.log(row_id)
             self.input_metadata(row_id)
+            self.mainlogr.log(self.metadata)
             self.row_num = self.metadata.get('row_index')
+            self.mainlogr.log(self.row_num)
             self.logr = ghetto_logger("pl3_funcs.py", row_num = self.row_num)
             self.logr.log(self.metadata)
             self.current_row_id = row_id
