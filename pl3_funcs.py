@@ -53,7 +53,7 @@ class pl3Updater:
     def input_metadata(self, row_id):
         '''finds a row number and other meta data from inputs to give to log'''
         try:
-            sheet = smart.Sheets.get_sheet(self.source_sheet_id)
+            sheet = self.smart.Sheets.get_sheet(self.source_sheet_id)
         except:
             logr = ghetto_logger("pl3_funcs.py", False)
             logr.log(f"failed to find source sheet with id {self.source_sheet_id}, could not proceed with update")
