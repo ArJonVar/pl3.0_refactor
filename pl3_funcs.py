@@ -52,18 +52,21 @@ class pl3Updater:
         self.source_enum_column_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="enum_source_column_id")
         self.update_column_name = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="update_column_name")
     
-    def log_exceptions(self, func, logr=ghetto_logger('pl3_funcs.py', False)):
+    def log_exceptions(self, func):
         '''decorator to catch and log errors in main .txt (you can also go to venv/bin/gunicorn_erroroutput.txt for full error)'''
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                logr.log(F"ERROR from {self.row_num} in {func.__name__}(): {e}")
-                # if self.row_num != "unknown row number":
-                #     local_log = ghetto_logger('pl3_funcs.py', False, self.row_num)
-                #     local_log.log(F"ERROR in {func.__name__}(): {e}")
+                self.log_error(func)
                 raise e
         return wrapper
+
+    def log_error(self, func, logr=ghetto_logger('pl3_funcs.py', False)):
+        logr.log(F"ERROR from {self.row_num} in {func.__name__}(): {e}")
+        # if self.row_num != "unknown row number":
+        #     local_log = ghetto_logger('pl3_funcs.py', False, self.row_num)
+        #     local_log.log(F"ERROR in {func.__name__}(): {e}")
 
     # @log_exceptions
     def input_metadata(self, row_id):
