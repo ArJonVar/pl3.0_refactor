@@ -353,14 +353,17 @@ class pl3Updater:
     def report_post(self):
         '''cleans the posting data into a readable dict'''
         post_report = []
-        for i, row in enumerate(self.main_updaterow_df.values.tolist()[0]):
-            if row != '':
-                if isinstance(row, dict):
-                    post_report({'index': i, 'value': row['values'][0]})
-                else:
-                    post_report({'index': i, 'value': row})
+        try:
+            for i, row in enumerate(self.main_updaterow_df.values.tolist()[0]):
+                if row != '':
+                    if isinstance(row, dict):
+                        post_report({'index': i, 'value': row['values'][0]})
+                    else:
+                        post_report({'index': i, 'value': row})
 
-        return post_report 
+            return post_report
+        except:
+            return "no update was made" 
     #endregion
     
     @log_exceptions
