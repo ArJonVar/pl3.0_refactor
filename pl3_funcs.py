@@ -15,6 +15,16 @@ except ImportError:
 
 import sys
 
+def log_exceptions(func, logr=ghetto_logger('pl3_funcs.py', False)):
+    '''decorator to catch and log errors in main .txt (you can also go to venv/bin/gunicorn_erroroutput.txt for full error)'''
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            logr.log(F"ERROR in {func.__name__}(): {e}")
+            raise e
+    return wrapper
+
 class pl3Updater:
     '''designed usage:
     [variable] = pl3Updater(token='{insert token}')
@@ -365,24 +375,4 @@ class pl3Updater:
             self.logr.log("debug!! Updates:", self.main_updaterow_df.values.tolist())
             self.logr.log(f"{self.enum} Updated on the {self.region} Project List")
             time.sleep(12)
-     
-def dev_funcs_looper(i):
-    '''loops through a set of updates starting wtih i'''
-    update_sheet_id = 8025857521411972
-    sheet_obj = grid(update_sheet_id)
-    sheet_obj.fetch_content()
-    row_ids = sheet_obj.grid_row_ids
-    for i, id in enumerate(row_ids):
-        # last full update was: i > 171
-        # subtract (2 or 1?) from the row # you trying to target...
-        if i == 242:
-            k = 35
-            print(i)
-            if i % k == 0 and i != 0:
-                print("sleeping for 60")
-                time.sleep(60)
-            action = pl3Updater(token='3mC3U9cL5XNsaYiCYqNEnd0n0PQV5Jw1574dW', dev_bool = True, webhook_id='7782278911813508', row_ids=[str(id)])
-            action.update_per_row()
-        else:
-            pass
-       
+         
