@@ -236,7 +236,7 @@ class pl3Updater:
                 self.logr.log(f'''
                     COL:  {colname} COLID:{column}
                     Value: {item}
-                ''')
+                ''', type = "paragraph")
                 if type(item) == dict:
                     try:
                         for i in item.get('values'):
@@ -280,7 +280,7 @@ class pl3Updater:
                         #append cell to new_row
                         new_row.cells.append(new_cell)
                     else: 
-                        self.logr.log("skipped")
+                        self.logr.log("skipped", type = "paragraph")
         try:
             # self.logr.log('NEW ROW:', new_row)
             response = self.smart.Sheets.update_rows(self.dest_sheet_id, [new_row])
