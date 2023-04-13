@@ -350,6 +350,17 @@ class pl3Updater:
             self.logr.log(response)
             self.logr.log(f"Partial Success Row updated {response.message}")
         return response
+    def report_post(self):
+        '''cleans the posting data into a readable dict'''
+        post_report = []
+        for i, row in enumerate(self.main_updaterow_df.values.tolist()[0]):
+            if row != '':
+                if isinstance(row, dict):
+                    post_report({'index': i, 'value': row['values'][0]})
+                else:
+                    post_report({'index': i, 'value': row})
+
+        return post_report 
     #endregion
     
     @log_exceptions
@@ -372,7 +383,8 @@ class pl3Updater:
             self.process_matching()
             self.logr.log("self.process_matching...")
             self.update_per_cell()
-            self.logr.log("debug!! Updates:", self.main_updaterow_df.values.tolist())
+            report = self.report_post()
+            self.logr.log(f"Updates: {report}")
             self.logr.log(f"{self.enum} Updated on the {self.region} Project List")
             time.sleep(12)
-         
+          
