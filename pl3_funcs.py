@@ -15,16 +15,6 @@ except ImportError:
 
 import sys
 
-def log_exceptions(func, logr=ghetto_logger('pl3_funcs.py', False)):
-    '''decorator to catch and log errors in main .txt (you can also go to venv/bin/gunicorn_erroroutput.txt for full error)'''
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except Exception as e:
-            logr.log(F"ERROR in {func.__name__}(): {e}")
-            raise e
-    return wrapper
-
 class pl3Updater:
     '''designed usage:
     [variable] = pl3Updater(token='{insert token}')
@@ -58,11 +48,10 @@ class pl3Updater:
             self.row_ids = row_ids
         else:
             self.grab_variables_from_sysv()
-        self.mainlogr.log(f'path="pl3_webhooks.json", input_type="webhook_id", {self.webhook_id} output_type="sheet_id"')
         self.source_sheet_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="sheet_id")
         self.source_enum_column_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="enum_source_column_id")
         self.update_column_name = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="update_column_name")
-        self.mainlogr.log(f"{self.source_sheet_id}, {self.source_enum_column_id}, {self.update_column_name}")
+
 
     @log_exceptions
     def input_metadata(self, row_id):
@@ -86,7 +75,7 @@ class pl3Updater:
             arguments = [i for i in sys.argv]
         self.row_ids = [str(i.split("row_id:")[1]) for i in arguments if i.startswith("row_id:")]
         self.webhook_id = [str(i.split("webhook_id:")[1]) for i in arguments if i.startswith("webhook_id:")][0]
-    # @log_exceptions
+
     @staticmethod
     def json_id_router(path, input_type=None, input=None, output_type=None):
         df = pd.read_json(path)
@@ -135,7 +124,7 @@ class pl3Updater:
         self.column_ids_reduced_final = self.reduced_columns.reduced_column_ids
         self.column_names_final = self.reduced_columns.reduced_column_names
         # this is bad use of name space, the name of function matches the name of function in grid, fix!
-        if self.webhook_id != '7782278911813508':
+        if self.webhook_id != '7782278911813508' and self.webhook_id != '8974468551862148':
             self.column_ids_reduced_final = list(self.reduced_columns.column_df[self.reduced_columns.column_df['title']==self.update_column_name]['id'])
             self.column_names_final = [self.update_column_name]
     @log_exceptions
@@ -376,4 +365,24 @@ class pl3Updater:
             self.logr.log("debug!! Updates:", self.main_updaterow_df.values.tolist())
             self.logr.log(f"{self.enum} Updated on the {self.region} Project List")
             time.sleep(12)
-    
+     
+def dev_funcs_looper(i):
+    '''loops through a set of updates starting wtih i'''
+    update_sheet_id = 8025857521411972
+    sheet_obj = grid(update_sheet_id)
+    sheet_obj.fetch_content()
+    row_ids = sheet_obj.grid_row_ids
+    for i, id in enumerate(row_ids):
+        # last full update was: i > 171
+        # subtract (2 or 1?) from the row # you trying to target...
+        if i == 242:
+            k = 35
+            print(i)
+            if i % k == 0 and i != 0:
+                print("sleeping for 60")
+                time.sleep(60)
+            action = pl3Updater(token='3mC3U9cL5XNsaYiCYqNEnd0n0PQV5Jw1574dW', dev_bool = True, webhook_id='7782278911813508', row_ids=[str(id)])
+            action.update_per_row()
+        else:
+            pass
+       
