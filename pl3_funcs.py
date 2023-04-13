@@ -58,9 +58,11 @@ class pl3Updater:
             self.row_ids = row_ids
         else:
             self.grab_variables_from_sysv()
+        self.mainlogr.log(f'path="pl3_webhooks.json", input_type="webhook_id", {self.webhook_id} output_type="sheet_id"')
         self.source_sheet_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="sheet_id")
         self.source_enum_column_id = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="enum_source_column_id")
         self.update_column_name = self.json_router_handler(path="pl3_webhooks.json", input_type="webhook_id", input=self.webhook_id, output_type="update_column_name")
+        self.mainlogr.log(f"{self.source_sheet_id}, {self.source_enum_column_id}, {self.update_column_name}")
 
     @log_exceptions
     def input_metadata(self, row_id):
