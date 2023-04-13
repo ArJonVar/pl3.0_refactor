@@ -280,7 +280,7 @@ class pl3Updater:
                         #append cell to new_row
                         new_row.cells.append(new_cell)
                     else: 
-                        self.logr.log("skipped", type = "paragraph")
+                        self.logr.log("    ->skipped<- \n", type = "paragraph")
         try:
             # self.logr.log('NEW ROW:', new_row)
             response = self.smart.Sheets.update_rows(self.dest_sheet_id, [new_row])
