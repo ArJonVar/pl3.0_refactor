@@ -372,6 +372,7 @@ class pl3Updater:
             row_id = int(row_id)
             self.input_metadata(row_id)
             self.mainlogr.log(self.metadata)
+            self.mainlogr.log('TEST')
             self.row_num = self.metadata.get('row_index')
             self.logr = ghetto_logger("pl3_funcs.py", row_num = self.row_num)
             self.logr.log(self.metadata)
@@ -389,5 +390,6 @@ class pl3Updater:
             report = self.report_post()
             self.logr.log(f"Updates: {report}")
             self.logr.log(f"{self.enum} Updated on the {self.region} Project List")
+            self.mainlogr.log(f"{self.enum} successfully updated on the {self.region} Project List")
             time.sleep(12)
           
