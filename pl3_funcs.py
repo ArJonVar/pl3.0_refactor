@@ -357,13 +357,13 @@ class pl3Updater:
             for i, row in enumerate(self.main_updaterow_df.values.tolist()[0]):
                 if row != '':
                     if isinstance(row, dict):
-                        post_report({'index': i, 'value': row['values'][0]})
+                        post_report.append({'index': i, 'value': row['values'][0]})
                     else:
-                        post_report({'index': i, 'value': row})
+                        post_report.append({'index': i, 'value': row})
 
             return post_report
         except:
-            return "no update was made" 
+            return "report_post() function had an error" 
     #endregion
     
     @log_exceptions
@@ -372,7 +372,6 @@ class pl3Updater:
             row_id = int(row_id)
             self.input_metadata(row_id)
             self.mainlogr.log(self.metadata)
-            self.mainlogr.log('TEST')
             self.row_num = self.metadata.get('row_index')
             self.logr = ghetto_logger("pl3_funcs.py", row_num = self.row_num)
             self.logr.log(self.metadata)
@@ -392,4 +391,4 @@ class pl3Updater:
             self.logr.log(f"{self.enum} Updated on the {self.region} Project List")
             self.mainlogr.log(f"{self.enum} successfully updated on the {self.region} Project List")
             time.sleep(12)
-          
+         
