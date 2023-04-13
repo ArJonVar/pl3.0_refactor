@@ -86,7 +86,7 @@ class pl3Updater:
             arguments = [i for i in sys.argv]
         self.row_ids = [str(i.split("row_id:")[1]) for i in arguments if i.startswith("row_id:")]
         self.webhook_id = [str(i.split("webhook_id:")[1]) for i in arguments if i.startswith("webhook_id:")][0]
-    @log_exceptions
+    # @log_exceptions
     @staticmethod
     def json_id_router(path, input_type=None, input=None, output_type=None):
         df = pd.read_json(path)
